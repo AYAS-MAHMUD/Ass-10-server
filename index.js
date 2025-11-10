@@ -54,14 +54,42 @@ async function run() {
         const result = await servicesCollection.findOne(query);
         res.send(result);
     })
+    // Bookings post
     app.post('/bookings', async(req,res)=>{
         const booking = req.body;
-        console.log(booking);
+        // console.log(booking);
         const result = await bookingsCollection.insertOne(booking);
         res.send(result);
     })
+    // Bookings get by email and populate service details
+    app.get('/bookings', async(req,res)=>{
+        const email = req.query.email;
 
-
+        const pipeline = [
+          {
+            $match: { customerEmail: email }
+          },
+            {
+              $lookup: {
+                from: "services",
+                let: { serviceId: { $toObjectId: "$serviceId" } },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: { $eq: ["$_id", "$$serviceId"] }
+                    }
+                  }
+                ],
+                as: "serviceDetails"
+              }
+            },
+            {
+              $unwind: "$serviceDetails"
+            }
+          ];
+        const result = await bookingsCollection.aggregate(pipeline).toArray();
+        res.send(result);
+    })
 
 
 
