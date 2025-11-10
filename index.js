@@ -43,7 +43,16 @@ async function run() {
         const result = await servicesCollection.find().limit(6).toArray();
         res.send(result);
     })
-    
+
+    // Single service get
+    const { ObjectId } = require('mongodb');
+    app.get('/services/:id', async(req,res)=>{
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)};
+        // const query = { _id: id };
+        const result = await servicesCollection.findOne(query);
+        res.send(result);
+    })
 
 
 
