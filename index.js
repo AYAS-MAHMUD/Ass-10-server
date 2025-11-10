@@ -30,6 +30,7 @@ async function run() {
     await client.connect();
     const db = client.db("homehero");
     const servicesCollection = db.collection("services");
+    const bookingsCollection = db.collection("bookings");
     // Send a ping to confirm a successful connection
 
     // All services get
@@ -53,7 +54,12 @@ async function run() {
         const result = await servicesCollection.findOne(query);
         res.send(result);
     })
-
+    app.post('/bookings', async(req,res)=>{
+        const booking = req.body;
+        console.log(booking);
+        const result = await bookingsCollection.insertOne(booking);
+        res.send(result);
+    })
 
 
 
