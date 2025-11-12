@@ -34,11 +34,28 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     // All services get
-    app.get('/services', async(req,res)=>{
-        const result = await servicesCollection.find().toArray();
-        res.send(result);
-    })
-     
+    // app.get('/services', async(req,res)=>{
+    //     const result = await servicesCollection.find().toArray();
+    //     res.send(result);
+    // })
+         // Get own Services
+app.get('/services', async (req, res) => {
+  try {
+    const email = req.query.email;
+    let query = {};
+
+    if (email) {
+      query['provider.email'] = { $regex: new RegExp(`^${email}$`, 'i') };
+    }
+
+    const result = await servicesCollection.find(query).toArray();
+    res.send(result);
+  } catch (err) {
+    console.error('Error fetching services:', err);
+    res.status(500).send({ message: 'Server error' });
+  }
+});
+
     // Latest 6 services get
     app.get('/latest-services', async(req,res)=>{
         const result = await servicesCollection.find().limit(6).toArray();
@@ -57,6 +74,7 @@ async function run() {
     // Bookings post
     app.post('/bookings', async(req,res)=>{
         const booking = req.body;
+
         // console.log(booking);
         const result = await bookingsCollection.insertOne(booking);
         res.send(result);
@@ -105,17 +123,20 @@ async function run() {
       const result = await servicesCollection.insertOne(newServices);
       res.send(result);
     })
-    // Get own Services
-    app.get('/services',async(req,res)=>{
-      const query = {}
-      const email = req.query.email;
-      if(email){
-        query.email = email
-      }
+
+
+    // Price range route
+    app.get('/services', async (req, res) => {
+      const minPrice = parseFloat(req.query.minPrice) || 0;
+      const maxPrice = parseFloat(req.query.maxPrice) || Infinity;
+
+      const query = {
+        price: { $gte: minPrice, $lte: maxPrice } // Range filter
+      };
+
       const result = await servicesCollection.find(query).toArray();
       res.send(result);
-    })
-
+    });
 
 
     await client.db("admin").command({ ping: 1 });
@@ -125,6 +146,7 @@ async function run() {
     // await client.close();
   }
 }
+
 run().catch(console.dir);
 
 
