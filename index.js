@@ -89,6 +89,21 @@ async function run() {
         res.status(500).send({ message: "Server error" });
       }
     });
+        // Price range route
+    app.get("/service", async (req, res) => {
+      const minPrice = parseFloat(req.query.minPrice) || 0;
+      const maxPrice = parseFloat(req.query.maxPrice) || Infinity;
+
+      const query = {
+        price: { $gte: minPrice, $lte: maxPrice }, // Range filter
+      };
+
+      const result = await servicesCollection.find(query).toArray();
+      res.send(result);
+    });
+
+
+
 
     // Services delete
     app.delete("/services/:id", async (req, res) => {
@@ -183,18 +198,7 @@ async function run() {
       res.send(result);
     });
 
-    // Price range route
-    app.get("/services", async (req, res) => {
-      const minPrice = parseFloat(req.query.minPrice) || 0;
-      const maxPrice = parseFloat(req.query.maxPrice) || Infinity;
 
-      const query = {
-        price: { $gte: minPrice, $lte: maxPrice }, // Range filter
-      };
-
-      const result = await servicesCollection.find(query).toArray();
-      res.send(result);
-    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
