@@ -37,18 +37,13 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     const db = client.db("homehero");
     const servicesCollection = db.collection("services");
     const bookingsCollection = db.collection("bookings");
     // Send a ping to confirm a successful connection
 
-    // All services get
-    // app.get('/services', async(req,res)=>{
-    //     const result = await servicesCollection.find().toArray();
-    //     res.send(result);
-    // })
-    // Middlewaare setup
+
     const middleware=async(req,res,next)=>{
       // console.log("hell owlrd",req.headers.authorization);
       if(!req.headers.authorization){
@@ -192,7 +187,7 @@ async function run() {
     });
 
     // Add Services
-    app.post("/services",middleware, async (req, res) => {
+    app.post("/services",async (req, res) => {
       const newServices = req.body;
       const result = await servicesCollection.insertOne(newServices);
       res.send(result);
@@ -200,7 +195,7 @@ async function run() {
 
 
 
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
