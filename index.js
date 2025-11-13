@@ -3,6 +3,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 const cors = require("cors");
 require("dotenv").config();
+const admin = require("firebase-admin");
 // middleware
 app.use(cors());
 app.use(express.json());
@@ -10,6 +11,16 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("Hello World! from Express Server assignment");
 });
+
+
+const serviceAccount = require("./firebaseadminsdk.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+
+
 
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.fqjmyg3.mongodb.net/?appName=Cluster0`;
@@ -37,6 +48,30 @@ async function run() {
     //     const result = await servicesCollection.find().toArray();
     //     res.send(result);
     // })
+    // Middlewaare setup
+    const middleware=async(req,res,next)=>{
+      // console.log("hell owlrd",req.headers.authorization);
+      if(!req.headers.authorization){
+        return req.status(401).send({message:"Unauthorized access"})
+      }
+      const token = req.headers.authorization.split(' ')[1];
+      // console.log(token)
+      if(!token){
+        return req.status(401).send({message:"Unauthorized access"})
+      }
+
+      try{
+        const userinfo = await admin.auth().verifyIdToken(token);
+        // console.log("")
+        next()
+      }catch{
+        return req.status(401).send({message:"Unauthorized access"})
+
+      }
+      
+    }
+
+
     // Get own Services
     app.get("/services", async (req, res) => {
       try {
@@ -104,9 +139,9 @@ async function run() {
       res.send(result);
     });
     // Bookings get by email and populate service details
-    app.get("/bookings", async (req, res) => {
+    app.get("/bookings",middleware, async (req, res) => {
       const email = req.query.email;
-
+      // console.log(req.headers)
       const pipeline = [
         {
           $match: { customerEmail: email },
@@ -142,7 +177,7 @@ async function run() {
     });
 
     // Add Services
-    app.post("/services", async (req, res) => {
+    app.post("/services",middleware, async (req, res) => {
       const newServices = req.body;
       const result = await servicesCollection.insertOne(newServices);
       res.send(result);

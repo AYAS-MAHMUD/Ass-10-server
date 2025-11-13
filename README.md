@@ -15,6 +15,7 @@ It’s built with **Express.js** and the **MongoDB Native Driver**.
 - Add new services  
 - Create, get, and delete bookings  
 - Populate booking details with related service information
+- Middleware setup for authentication
 
 ---
 
