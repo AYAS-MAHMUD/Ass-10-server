@@ -76,14 +76,18 @@ async function run() {
         if (email) {
           query["provider.email"] = { $regex: new RegExp(`^${email}$`, "i") };
         }
+        const {limit=0,skip=0} = req.query;
 
-        const result = await servicesCollection.find(query).toArray();
-        res.send(result);
+        const result = await servicesCollection.find(query).limit(parseInt(limit)).skip(parseInt(skip)).toArray();
+        const count = await servicesCollection.countDocuments();
+        console.log(count)
+        res.send({result,count});
       } catch (err) {
         console.error("Error fetching services:", err);
         res.status(500).send({ message: "Server error" });
       }
     });
+
         // Price range route
     app.get("/service", async (req, res) => {
       const minPrice = parseFloat(req.query.minPrice) || 0;
